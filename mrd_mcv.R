@@ -2,21 +2,18 @@
 
 # !!! Make sure the raw morphometry tables contain only 8 ADNIs per subjects!
 # !!! Make sure that the values in the excel tables are actually formatted as numbers
-# !!! Make sure that you perform a quality check on a number of random ICC outputs (by running them again ON THEIR OWN)
+# !!! Make sure that you perform a quality check on a number of random ICC outputs (by running them again ON THEIR OWN and comparing them to an SPSS output)
 
 
 # install the libraries, if necessary
 # install.packages('readxl')
 # install.packages('xlsx')
-# install.packages('irr')
 
 # load the libraries
 library(readxl)
 library(xlsx)
-#library(irr)
 
 # set the dataset
-# X1 <- read_excel("N:/My Documents/MRD/aseg_stats_cross.xlsx", sheet = "Sheet1")
 X1 <- read_excel("/Users/mishodimitrov/Downloads/aseg_stats_cross.xlsx", sheet = "Sheet1")
 
 # set a range to include each brain region in the dataset
@@ -50,9 +47,8 @@ for (i in brain_region) {
     
     ################################################################################################
     
-    # calculate the absolute percentage difference
-    #mrd_diff = abs(diff(a1a2))
-    #mrd_value = mrd_diff/a1
+    # calculate the mean relative (percentage) difference
+    # Only A1vsA2
     rd <- abs((a1a2[, c(1)] - a1a2[, c(2)])/a1a2[, c(1)])
     mrd <- mean(rd)
     mrd_percentage <- mrd*100
@@ -69,13 +65,8 @@ for (i in brain_region) {
     mrd_percentage_ubound <- mrd_ubound*100
     matr2 <- rbind(matr, mrd_percentage, mrd_percentage_lbound, mrd_percentage_ubound)
     
-    
+    # Calculate the MRD for the rest of the session comparisons
     for (objc in comp) {
-        #mrd_diff <- abs(diff(objc))
-        #mrd_value = mrd_diff/v1
-        #mrd_percentge = mrd_value*100
-        #mrd_percentage_lbound <- mrd_percentage$lbound
-        #mrd_percentage_ubound <- mrd_percentage$ubound
         rd <- abs((objc[, c(1)] - objc[, c(2)])/objc[, c(1)])
         mrd <- mean(rd)
         mrd_percentage <- mrd*100
@@ -97,26 +88,18 @@ for (i in brain_region) {
     
     # name the columns and export the entire dataset to an excel file
     colnames(matr2) <- c("A1 vs A2", "A1 vs A3", "A1 vs A4", "A1 vs B1", "A3 vs A4")
-    #main_path <- path.expand("N:/My Documents/MRD/")
     main_path <- path.expand("/Users/mishodimitrov/Downloads/")
     region_name <- colnames(a1)
-    # write.csv(matr2, paste0(main_path, "ICC.xlsx", na = "NA", append = TRUE, col_names = TRUE))
     write.xlsx(matr2, paste0(main_path, "MRD.xlsx"), sheetName = region_name, col.names = TRUE, row.names = TRUE, append = TRUE)
     
-    # remove matr and matr2 from the environment..
-    #rm(matr)
-    #rm(matr2)
     
     ##################################################################################################
     
-    # ..and create a new empty matrix
+    # create a new empty matrix for the MCV results
     matr_a <- matrix(nrow = 0, ncol = 1)
     
     # calculate the mean coefficient of variation
-    # Option 1: Calculate MCV for the whole dataset (for each separate comparison) and don't have CIs...
-    # (because calculating SD with only 2 data points (e.g. A1 and A2 for each participant) is a bit ridiculous)
-    # .. in which case the upper and lower bound would be = MCV just to keep the script working
-    
+    # Only A1vsA2
     df_1d <- as.vector(t(a1a2))
     mcv_mean <- mean(df_1d)
     mcv_sd <- sd(df_1d)
@@ -126,6 +109,7 @@ for (i in brain_region) {
     mcv_percentage_ubound <- mcv_percentage
     matr_b <- rbind(matr_a, mcv_percentage, mcv_percentage_lbound, mcv_percentage_ubound)
     
+    # Calculate the MCV for the rest of the session comparisons
     for (objc in comp) {
       df_1d <- as.vector(t(objc))
       mcv_mean <- mean(df_1d)
@@ -138,97 +122,13 @@ for (i in brain_region) {
       matr_b <- cbind(matr_b, mcv_all)
     }
     
-    # Option 2: Calculate mean, SD and CV in a row-wise manner and then get the mean, SD etc. of that 20x1 CV vector
-    # Here's the code, but it doesn't generate SDs, so don't use it.
-    #participant_range <- 1:20
-    #mcv_vector = c()
-    #for (i in participant_range) {
-    #    small_set <- a1a2[c(i), ]
-    #    small_set_mean <- mean(small_set)
-    #    print(small_set_mean)
-    #    small_set_sd <- sd(small_set)
-    #    print(small_set_sd)
-    #    small_set_cv <- small_set_sd/small_set_mean
-    #    mcv_vector[i] <- small_set_cv
-    #}
-    
-    #mcv_n <- length(mcv_vector)
-    #mcv_mean <- mean(mcv_vector)
-    #mcv_percentage <- mcv_mean*100
-    #mcv_sd <- sd(mcv_vector)
-    #mcv_se <- mcv_sd/sqrt(mcv_n)
-    #alpha <- 0.05
-    #mcv_degrees_freedom <- mcv_n - 1
-    #mcv_t_score <- qt(p=alpha/2, df=mcv_degrees_freedom,lower.tail=F)
-    #mcv_margin_error <- mcv_t_score * mcv_se
-    #mcv_lbound <- mcv_mean - mcv_margin_error
-    #mcv_ubound <- mcv_mean + mcv_margin_error
-    
-    #mcv_percentage_lbound <- mcv_lbound*100
-    #mcv_percentage_ubound <- mcv_ubound*100
-    #matr_b <- rbind(matr_a, mcv_percentage, mcv_percentage_lbound, mcv_percentage_ubound)
-    
-    #for (objc in comp) {
-    #    mcv_vector = c()
-    #    for (i in participant_range) {
-    #      small_set <- objc[c(i), ]
-    #      small_set_mean <- mean(small_set)
-    #      small_set_sd <- sd(small_set)
-    #      small_set_cv <- small_set_sd/small_set_mean
-    #      mcv_vector[i] <- small_set_cv
-    #    }
-    #    mcv_n <- length(mcv_vector)
-    #    mcv_mean <- mean(mcv_vector)
-    #    mcv_percentage <- mcv_mean*100
-    #    mcv_sd <- sd(mcv_vector)
-    #    mcv_se <- mcv_sd/sqrt(mcv_n)
-    #    alpha <- 0.05
-    #    mcv_degrees_freedom <- mcv_n - 1
-    #    mcv_t_score <- qt(p=alpha/2, df=mcv_degrees_freedom,lower.tail=F)
-    #    mcv_margin_error <- mcv_t_score * mcv_se
-    #    mcv_lbound <- mcv_mean - mcv_margin_error
-    #    mcv_ubound <- mcv_mean + mcv_margin_error
-        
-    #    mcv_percentage_lbound <- mcv_lbound*100
-    #    mcv_percentage_ubound <- mcv_ubound*100
-        
-    #   mcv_all <- c(mcv_percentage, mcv_percentage_lbound, mcv_percentage_ubound)
-    #   matr_b <- cbind(matr_b, mcv_all)
-    #}
-    
-    ################################################################################################
-    
-    # ICC
-    #icc_test <- (icc(a1a2, model = "twoway", type = "agreement", unit = "single", r0 = 0, conf.level = 0.95))
-    #icc_value <- icc_test$value
-    #icc_lbound <- icc_test$lbound
-    #icc_ubound <- icc_test$ubound
-    #icc_p_value <- icc_test$p.value
-    #matr2 <- rbind(matr, icc_value, icc_lbound, icc_ubound, icc_p_value)
-
-
-    # go through each comparison (2 onwards), perform ICC and append columns to matrix
-    #for (objc in comp) {
-        #icc_test <- (icc(objc, model = "twoway", type = "agreement", unit = "single", r0 = 0, conf.level = 0.95))
-        #icc_value <- icc_test$value
-        #icc_lbound <- icc_test$lbound
-        #icc_ubound <- icc_test$ubound
-        #icc_p_value <- icc_test$p.value
-        #icc_all <- c(icc_value, icc_lbound, icc_ubound, icc_p_value)
-        #matr2 <- cbind(matr2, icc_all)
-        
-    #}
     
     # name the columns and export the entire dataset to an excel file
     colnames(matr_b) <- c("A1 vs A2", "A1 vs A3", "A1 vs A4", "A1 vs B1", "A3 vs A4")
-    #main_path <- path.expand("N:/My Documents/MRD/")
     main_path <- path.expand("/Users/mishodimitrov/Downloads/")
     region_name <- colnames(a1)
-    # write.csv(matr2, paste0(main_path, "ICC.xlsx", na = "NA", append = TRUE, col_names = TRUE))
     write.xlsx(matr_b, paste0(main_path, "MCV.xlsx"), sheetName = region_name, col.names = TRUE, row.names = TRUE, append = TRUE)
     
-    #rm(matr_a)
-    #rm(matr_b)
 }
     
 print("Done.")
