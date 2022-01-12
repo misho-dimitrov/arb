@@ -10,7 +10,7 @@ The Precision in Neuroimaging (PIN) study dataset, which includes MRI scans of t
 
 ## Used for the variability and reliability analyses in:
 
-***Reliability of structural MRI measurements: The effects of scan session, head tilt, inter-scan interval, acquisition sequence, FreeSurfer version and processing stream***
+***Reliability of structural MRI measurements: The effects of scan session, head tilt, inter-scan interval, acquisition sequence, FreeSurfer version and processing stream*** - [https://doi.org/10.1016/j.neuroimage.2021.118751] (https://doi.org/10.1016/j.neuroimage.2021.118751)
 
 Author list:  
 *Emily P. Hedges, Mihail Dimitrov, Uzma Zahid, Barbara Brito Vega, Shuqing Si, Hannah Dickson, Philip McGuire, Steven Williams, Gareth J Barker, Matthew J Kempton*
